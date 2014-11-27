@@ -9,12 +9,11 @@ import org.fireking.app.mt.R;
 import org.fireking.app.mt.model.ShopPanicListEntity;
 import org.fireking.app.mt.service.grab_webpage.GroupGrab;
 
-import com.squareup.picasso.Picasso;
-
 import roboguice.context.event.OnCreateEvent;
 import roboguice.inject.ContentView;
 import roboguice.inject.InjectView;
 import android.content.Context;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
@@ -27,6 +26,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.google.inject.Inject;
+import com.squareup.picasso.Picasso;
 
 /**
  * 名店抢购页面
@@ -51,6 +53,11 @@ public class ShopPanicbuyingActivity extends BaseActivity implements
 	PanicBuyingAdapter adapter;
 	@InjectView(R.id.loading_layout)
 	RelativeLayout loading_layout;// 加载内容页面
+	@InjectView(R.id.loading)
+	ImageView loading;// loading动画view
+	@InjectView(R.id.loading_text)
+	TextView loadText;// 加载提示文字
+	AnimationDrawable loadAnimation;// 加载动画
 
 	// 获取数据
 	static final int GET_PANIC_LIST_SUC = 0x1001;
@@ -60,17 +67,39 @@ public class ShopPanicbuyingActivity extends BaseActivity implements
 	@InjectView(R.id.panic_tip)
 	private TextView panic_tip;
 
+	// 注入网络抓取内容
+	@Inject
+	GroupGrab mGroupGrab;
+
 	@Override
 	protected void doSomethingsOnCreate(OnCreateEvent onCreate) {
 		super.doSomethingsOnCreate(onCreate);
 		adapter = new PanicBuyingAdapter(this);
 		panic_list.setAdapter(adapter);
-		loading_layout.setVisibility(View.VISIBLE);
+		// 显示加载动画
+		loadAnim();
 		// 显示名前抢购倒计时
 		showDowntimes();
 		// 抓取名店抢购列表内容
 		getPanicList();
 		panic_tip.setOnClickListener(this);
+	}
+
+	/**
+	 * 加载动画
+	 */
+	private void loadAnim() {
+		loading_layout.setVisibility(View.VISIBLE);
+		loadAnimation = (AnimationDrawable) loading.getBackground();
+		loadAnimation.start();
+	}
+
+	/**
+	 * 停止动画
+	 */
+	private void stopAnim() {
+		loadAnimation.stop();
+		loading_layout.setVisibility(View.GONE);
 	}
 
 	/**
@@ -81,7 +110,7 @@ public class ShopPanicbuyingActivity extends BaseActivity implements
 			@Override
 			public void run() {
 				try {
-					List<ShopPanicListEntity> entitys = GroupGrab
+					List<ShopPanicListEntity> entitys = mGroupGrab
 							.getPanicList();
 					Message msg = handler.obtainMessage();
 					if (entitys == null || entitys.size() == 0) {
@@ -103,7 +132,7 @@ public class ShopPanicbuyingActivity extends BaseActivity implements
 			super.handleMessage(msg);
 			switch (msg.what) {
 			case GET_PANIC_LIST_SUC:
-				loading_layout.setVisibility(View.GONE);
+				stopAnim();
 				List<ShopPanicListEntity> entitys = (List<ShopPanicListEntity>) msg.obj;
 				if (entitys == null || entitys.size() == 0) {
 					return;
@@ -111,7 +140,7 @@ public class ShopPanicbuyingActivity extends BaseActivity implements
 				adapter.setData(entitys);
 				break;
 			case GET_PANIC_LIST_ERR:
-				loading_layout.setVisibility(View.GONE);
+				stopAnim();
 				break;
 			default:
 				break;
@@ -215,7 +244,7 @@ public class ShopPanicbuyingActivity extends BaseActivity implements
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.panic_tip:
-			
+
 			break;
 
 		default:
