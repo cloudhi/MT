@@ -37,6 +37,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.inject.Inject;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -110,6 +111,10 @@ public class GroupFragment extends BaseFragment implements OnClickListener {
 	@InjectView(R.id.guessforyou)
 	NoScrollListView guessforYou;
 
+	// 注入网络抓取内容
+	@Inject
+	GroupGrab mGroupGrab;
+
 	static String city = "shanghai";
 
 	@Override
@@ -177,7 +182,7 @@ public class GroupFragment extends BaseFragment implements OnClickListener {
 			public void run() {
 				Message msg = new Message();
 				try {
-					Document doc = GroupGrab.getDocument(city);
+					Document doc = mGroupGrab.getDocument(city);
 					msg.what = 0x1001;
 					msg.obj = doc;
 					handler.sendMessage(msg);
@@ -228,7 +233,7 @@ public class GroupFragment extends BaseFragment implements OnClickListener {
 	private void setGuessForYou(Document doc) {
 		List<GuessForyouEntity> entitys = null;
 		try {
-			entitys = GroupGrab.getGuessForYou(doc);
+			entitys = mGroupGrab.getGuessForYou(doc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -243,7 +248,7 @@ public class GroupFragment extends BaseFragment implements OnClickListener {
 	 * @throws Exception
 	 */
 	private void setGroupPanicBuying(Document doc) throws Exception {
-		List<ShopPanicBuyEntity> entitys = GroupGrab.getShop_panic_buying(doc);
+		List<ShopPanicBuyEntity> entitys = mGroupGrab.getShop_panic_buying(doc);
 		if (entitys != null && entitys.size() == 3) {
 			ShopPanicBuyEntity e0 = entitys.get(0);
 			panic_1.setText(e0.getName());

@@ -28,7 +28,7 @@ public class GroupGrab {
 	 * @return
 	 * @throws Exception
 	 */
-	public static Document getDocument(String city) throws Exception {
+	public Document getDocument(String city) throws Exception {
 		String uri = "http://i.meituan.com/?city=" + city;
 		// uri = uri.replace("{0}", "shanghai");
 		Document doc = Jsoup
@@ -51,12 +51,17 @@ public class GroupGrab {
 		List<ShopPanicBuyEntity> entitys = new ArrayList<ShopPanicBuyEntity>();
 		for (int i = 0; i < divs.size(); i++) {
 			Element div = divs.get(i);
+			Elements campaign_prices = div.select("div[class=campaign-price]");
+			String s_cam = "";
+			if (campaign_prices != null && campaign_prices.size() != 0) {
+				s_cam = campaign_prices.first().text();
+			}
 			entitys.add(new ShopPanicBuyEntity(i, div
 					.select("div[class=img-container]").first().select("img")
 					.attr("src"),
 					div.select("div[class=brand]").first().text(),
-					div.select("div[class=discount-price]").first().text(), div
-							.select("div[class=campaign-price]").first().text()));
+					div.select("div[class=discount-price]").first().text(),
+					s_cam));
 		}
 		return entitys;
 	}
@@ -68,7 +73,7 @@ public class GroupGrab {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<GuessForyouEntity> getGuessForYou(Document doc)
+	public List<GuessForyouEntity> getGuessForYou(Document doc)
 			throws Exception {
 		Elements divs = doc.select("div[class=dealcard]");
 		List<GuessForyouEntity> entitys = new ArrayList<GuessForyouEntity>();
@@ -95,7 +100,7 @@ public class GroupGrab {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<ShopPanicListEntity> getPanicList() throws Exception {
+	public List<ShopPanicListEntity> getPanicList() throws Exception {
 		String uri = MT_URI.SHOP_PANIC_BUYING_LIST;
 		Document doc = Jsoup
 				.connect(uri)
